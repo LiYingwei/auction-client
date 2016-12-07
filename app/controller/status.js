@@ -2,48 +2,41 @@
  * Created by SpaceQ on 2016/12/6.
  */
 var assert = require('assert');
-glb_status.onlineUser = {};  // userid : roomid or -1
-glb_status.rooms = {}; // id: {title,price,userId}
+glb_status.rinfo = {address: "0.0.0.0", port: 23333};
+glb_status.userId = 0;
+glb_status.rooms = {}; // id: {ID,title,price,userId}
 glb_status.users = {};
-glb_status.rinfo = {};
 glb_status.self_postion = -1;
 
+glb_status.addRoom = function (id, title, price, userId) {
+  glb_status.rooms[id] = {ID: id, title: title, price: price, userId: userId};
+};
+
 glb_status.removeRoom = function (id) {
-  if (glb_status.self_postion == id) {
-    glb_status.self_postion = -1;
-  } // may be redundant
-  for(var user in glb_status.rooms[id].userId) {
-    glb_status.onlineUser[user] = -1;
-  }
   delete glb_status.rooms[id];
-  delete glb_status.users[id];
 };
 
-glb_status.addRoom = function (id, title, price, userId = '') {
-  //TODO assert userId == '' for there is no user in a new room
-  glb_status.rooms[id] = {title: title, price:price, userId: userId};
-  glb_status.users[id] = {};
+glb_status.userLogin = function () {
+  glb_status.self_postion = -1;
 };
 
-glb_status.userLogin = function (id, rinfo) {
-  glb_status.rinfo[id] = rinfo;
-  glb_status.onlineUser[id] = -1;
+glb_status.userLogout = function () {
+  glb_status.userId = 0;
+  glb_status.rooms = {};
+  glb_status.users = {};
+  glb_status.self_postion = -1;
 };
 
-// glb_status.userLogout = function (id) {
-//   if (glb_status.onlineUser[id] != -1) {
-//     glb_status.userLeaveRoom(id, glb_status.onlineUser[id]);
-//   }
-//   delete glb_status.onlineUser[id];
-// };
-
-glb_status.userLeaveRoom = function (userId, roomId) {
-  delete glb_status.users[roomId][userId];
-  glb_status.onlineUser[userId] = -1;
+glb_status.userLeaveRoom = function () {
+  glb_status.self_postion = -1;
 };
 
-glb_status.userEnterRoom = function (userId, roomId) {
-  assert(glb_status.onlineUser[userId] == -1);
-  glb_status.onlineUser[userId] = roomId;
-  glb_status.users[roomId][userId] = userId;
+glb_status.userEnterRoom = function (user, roomId) {
+  assert(glb_status.self_postion == -1);
+  glb_status.self_postion = roomId;
+};
+
+glb_status.updatePrice = function (No, price, user) {
+  glb_status.rooms[No]["price"] = price;
+  glb_status.rooms[No]["userId"] = user;
 };

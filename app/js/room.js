@@ -2,16 +2,24 @@
  * Created by SpaceQ on 2016/12/3.
  */
 function enterRoom(No) {
-  glb_status.self_postion = No;
   $("#rooms").hide();
   $("#msgList").empty();
-  appendMsg('Welcome', '欢迎围观,在下方输入信息以广播.');
+  appendMsg('Welcome', '欢迎积极出价!');
   $("#room").show();
+  enterUser_controller(No, glb_status.userId);
 }
-function exitRoom() {
-  glb_status.self_postion = -1;
+function exitRoom(slient = false) {
   $("#rooms").show();
   $("#room").hide();
+  removeUser_controller(slient)
+}
+
+function raisePrice() {
+  // TODO check it is really a price and higher than the highest
+  var $raised_price = $("#raised-price");
+  var price = $raised_price.val();
+  raisePrice_controller(price);
+  $raised_price.val('');
 }
 rooms = new Vue({
   el: '#rooms',
@@ -21,7 +29,6 @@ rooms = new Vue({
   methods: {
     enterRoom: function (No) {
       enterRoom(No);
-      renderRoom(No);
     },
     addItem: function () {
       var name = $("#newItemName").find("input").val();

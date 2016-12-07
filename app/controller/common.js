@@ -11,71 +11,60 @@ var deepcopy = function (obj) {
 };
 
 var renderItem = function () {
-  items = $.extend(true, {}, raw_items);
+  items = $.extend(true, {}, glb_status.rooms);
   rooms.$set(rooms, 'items', items);
-  fs.writeFile('app/data/items.txt', JSON.stringify(raw_items), (err) => {
-    if (err) throw err;
-    // console.log("saved");
-  })
 };
 
-var renderRoom = function (No) {
-  if (glb_status.self_postion != No) return;
-  // console.log('randered Room' + No, now_item);
-  var now_item = deepcopy(raw_items[No]);
+var renderRoom = function (item) {
+  var now_item = deepcopy(item);
   if (typeof specificRoom == "undefined") {
     specificRoom = new Vue({
       el: '#room',
       data: {
-        status: now_item,
-        No: No
-      },
-      methods: {
-        removeItem: function () {
-          exitRoom();
-          removeItem_controller(this.$data['No']);
-          var myNotification = new Notification('删除' + No + '号拍卖品成功 :)');
-        },
-        kickOut: function (userId) {
-          removeUser_controller(this.$data['No'], userId);
-        }
+        status: now_item
       }
     });
   }
   specificRoom.$set(specificRoom, 'status', now_item);
-  specificRoom.$set(specificRoom, 'No', No);
+};
+
+var login_controller = function (userid) {
+  glb_status.userId = userid;
+  sender.send('login');
+  sender.send('auctions');
+};
+
+var logout_controller = function () {
+  glb_status.userLogout();
+  renderItem();
 };
 
 var addItem_controller = function (single_item) {
   glb_status.addRoom(single_item["ID"], single_item["title"], single_item["price"]);
-  message.broadCastMsg("additem " + JSON.stringify(glb_status.rooms[single_item["ID"]]));
   renderItem();
 };
 
 var removeItem_controller = function (No) {
-  delete raw_items[No];
-  message.broadCastMsg("removeitem " + JSON.stringify(No));
+  if(glb_status.self_postion == No) exitRoom(true);
   glb_status.removeRoom(No);
   renderItem();
 };
 
-var removeUser_controller = function (No, userId) {
-  delete raw_items[No]['users'][userId];
-  message.roomCasMsg(No, "userleave " + JSON.stringify([No, userId]));
-  glb_status.userLeaveRoom(userId, No);
-  renderRoom(No);
+var removeUser_controller = function (slient = false) {
+  if (!slient) {
+    sender.send("leave");
+  }
+  glb_status.userLeaveRoom();
+  renderItem();
 };
 
 var enterUser_controller = function (No, userId) {
-  raw_items[No]['users'][userId] = userId;
-  message.roomCasMsg(No, "userenter " + JSON.stringify([No, userId]));
+  sender.send("join " + JSON.stringify(No));
   glb_status.userEnterRoom(userId, No);
-  renderRoom(No);
+  renderRoom(glb_status.rooms[No]);
 };
 
-var raisePrice_controller = function (No, userId, price) {
+var raisePrice_controller = function (price) {
   //TODO check if higher and return result
-  raw_items[No]['userId'] = userId;
-  message.roomCasMsg(No, "price " + price);
-  renderRoom(No);
+  sender.send(`bid ${price}`);
 };

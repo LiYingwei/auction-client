@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Homework</title>
+	<title>网络拍卖行（客户端）</title>
 	<link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="css/room.css">
 	<link rel="stylesheet" type="text/css" href="css/chat.css">
@@ -20,22 +20,22 @@
 <body>
 <div class="container-fluid">
 	<nav class="navbar navbar-light bg-faded">
-		<a class="navbar-brand" href="#" onclick="goHome()">网上拍卖系统(服务器端)</a>
-		<!--ul class="nav navbar-nav">
-			<li class="nav-item active">
-				<a class="nav-link" href="#" onclick="goHome()">Home <span class="sr-only">(current)</span></a>
-			</li>
-		</ul-->
-		<form class="form-inline float-xs-right">
+		<a class="navbar-brand" href="#" onclick="goHome()">网上拍卖系统(客户端)</a>
+		<form id="loginForm" class="form-inline float-xs-right">
 			<div class="input-group">
-				<span class="input-group-addon" id="basic-addon1">To:</span>
-				<input id="send-user-id" type="text" class="form-control" placeholder="UserID"
+				<span class="input-group-addon">用户名:</span>
+				<input id="login-user-id" type="text" class="form-control" placeholder="UserID"
 				       aria-describedby="basic-addon1">
-			</div>
-			<div class="input-group">
-				<input id="send-user-msg" class="form-control" type="text" placeholder="Massage">
 				<span class="input-group-btn">
-					<button class="btn btn-outline-success" type="button" onclick="sendMessageNavWrap()">Send!</button>
+					<button class="btn btn-outline-success" type="button" onclick="loginNavWrap()">登录</button>
+				</span>
+			</div>
+		</form>
+		<form id="logoutForm" class="form-inline float-xs-right" style="display: none">
+			<div class="input-group">
+				<span id="logout-user-id" class="input-group-addon"></span>
+				<span class="input-group-btn">
+					<button class="btn btn-outline-success" type="button" onclick="logoutNavWrap()">登出</button>
 				</span>
 			</div>
 		</form>
@@ -52,51 +52,6 @@
 				<li class="list-group-item" v-else>Nobody raised up YET</li>
 			</ul>
 		</div>
-		<div class="card col-lg-4 col-md-6 col-sm-6 col-xs-12 room add-new-room" data-toggle="modal"
-		     data-target="#addNewItem">
-			<div class="cover">
-				<div class="card-block">
-					<h4 class="card-title">Add New Item</h4>
-				</div>
-				<ul class="list-group list-group-flush">
-					<li class="list-group-item">current price: ???</li>
-					<li class="list-group-item">Nobody raised up YET</li>
-				</ul>
-				<div>
-					<div>添加新拍品</div>
-				</div>
-			</div>
-		</div>
-		<div class="modal fade" id="addNewItem" tabindex="-1" role="dialog" aria-hidden="true">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-						<h4 class="modal-title">添加拍卖室</h4>
-					</div>
-					<div class="modal-body">
-						<form id="newItemForm">
-							<div class="form-group" id="newItemName">
-								<label>名称</label>
-								<input class="form-control" placeholder="建议不多于6个字">
-							</div>
-							<div class="form-group" id="newItemPrice">
-								<label>起拍价</label>
-								<input type="number" class="form-control" placeholder="请填写人民币">
-							</div>
-						</form>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-dismiss="modal"
-						        onclick="$('#newItemForm')[0].reset()">取消
-						</button>
-						<button type="button" class="btn btn-primary" v-on:click="addItem">添加</button>
-					</div>
-				</div>
-			</div>
-		</div>
 	</div>
 	<div id="room" class="row" style="display: none">
 		<div class="card col-xs-3">
@@ -108,27 +63,22 @@
 				<li class="list-group-item" v-if="status.userId != ''">Raise by user No.{{ status.userId }}</li>
 				<li class="list-group-item" v-else>Nobody raised up YET</li>
 				<li class="list-group-item">
-					<button class="btn btn-warning" v-on:click="removeItem">关闭拍卖室</button>
+					<button class="btn btn-warning" onclick="exitRoom()">离开拍卖室</button>
 				</li>
 			</ul>
 		</div>
 		<div class="col-xs-6">
 			<div class="row">
 				<div id="msgList" class="col-xs-12">
-					<div class="alert alert-info alert-dismissible fade in" role="alert">
-						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-						<strong>Holy guacamole!</strong> You should check in on some of those fields below.
-					</div>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-12">
 					<div class="input-group">
-						<input id="broadcastMsg" class="form-control" type="text" placeholder="Massage">
+						<input id="raised-price" class="form-control" type="text" placeholder="Price">
 						<span class="input-group-btn">
-							<button class="btn btn-outline-success" type="button" onclick="broadcastWrap()">Send!</button>
+							<button class="btn btn-outline-success" type="button"
+							        onclick="raisePrice()">Raise!</button>
 						</span>
 					</div>
 				</div>
@@ -140,7 +90,6 @@
 					User List
 				</li>
 				<li class="list-group-item" v-for="user in status.users">
-					<span class="tag tag-default tag-pill float-xs-right kickout" v-on:click="kickOut(user)">x</span>
 					{{ user }}
 				</li>
 			</ul>
@@ -151,7 +100,6 @@
 <script src="common/header.js"></script>
 <script src="controller/status.js"></script>
 <script src="controller/common.js"></script>
-<script src="controller/message.js"></script>
 <script src="controller/items.js"></script>
 <script src="js/render.js"></script>
 <script src="js/room.js"></script>

@@ -10,12 +10,13 @@ server.on('error', (err) => {
 });
 
 server.on('message', (msg, rinfo) => {
+  msg = msg.toString();
   console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
-  var [user, type] = msg.split(" ", 2);
-  msg = msg.substring(user.length + type.length + 2);
+  var [type] = msg.split(" ", 1);
+  msg = msg.substring(type.length + 1);
   var command = eval("responser." + type);
   if(typeof command === "function") {
-    command(user, msg, rinfo);
+    command(msg, rinfo);
   } else {
     console.log("illegal command: " + type);
   }
@@ -26,5 +27,5 @@ server.on('listening', () => {
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
-server.bind(23333);
+server.bind(23333 + parseInt(Math.random() * 40000));
 
