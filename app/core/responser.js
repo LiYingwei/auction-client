@@ -81,6 +81,9 @@ responser.additem = function (msg, rinfo) {
 responser.price = function (msg, rinfo) {
   var [No, price, user] = JSON.parse(msg);
   glb_status.updatePrice(No, price, user);
-  if (glb_status.self_postion == No) renderRoom(glb_status.rooms[No]);
+  if (glb_status.self_postion == No) {
+    renderRoom(glb_status.rooms[No]);
+    appendMsg("价格更新", user + "出价" + price)
+  }
   else renderItem();
 };

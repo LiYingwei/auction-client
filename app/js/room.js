@@ -9,15 +9,22 @@ function enterRoom(No) {
   enterUser_controller(No, glb_status.userId);
 }
 function exitRoom(slient = false) {
+  if (slient == false && glb_status.rooms[glb_status.self_postion].userId == glb_status.userId) {
+    alert('您出了最高价，请不要跑路^ ^');
+    return;
+  }
   $("#rooms").show();
   $("#room").hide();
   removeUser_controller(slient)
 }
 
 function raisePrice() {
-  // TODO check it is really a price and higher than the highest
   var $raised_price = $("#raised-price");
   var price = $raised_price.val();
+  if(price < glb_status.rooms[glb_status.self_postion].price) {
+    appendMsg("失败","请出更高价");
+    return;
+  }
   raisePrice_controller(price);
   $raised_price.val('');
 }

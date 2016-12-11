@@ -15,6 +15,10 @@ function loginNavWrap() {
 }
 
 function logoutNavWrap() {
+  if (glb_status.self_postion != -1 && glb_status.rooms[glb_status.self_postion].userId == glb_status.userId) {
+    alert('您出了最高价，请不要跑路^ ^');
+    return;
+  }
   $('#loginForm').show();
   $('#logoutForm').hide();
   logout_controller();

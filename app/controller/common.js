@@ -36,6 +36,7 @@ var login_controller = function (userid) {
 
 var logout_controller = function () {
   glb_status.userLogout();
+  sender.send('logout');
   renderItem();
 };
 
